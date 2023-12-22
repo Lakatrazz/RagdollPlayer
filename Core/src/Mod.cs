@@ -4,14 +4,14 @@ using BoneLib.BoneMenu.Elements;
 
 using MelonLoader;
 
-using SLZ.Rig;
+using Il2CppSLZ.Rig;
 
 using UnityEngine;
 
 namespace RagdollPlayer
 {
     public class RagdollPlayerMod : MelonMod {
-        public const string Version = "1.1.0";
+        public const string Version = "1.2.0";
 
         private const float DoubleTapTimer = 0.32f;
 
@@ -45,6 +45,8 @@ namespace RagdollPlayer
         private static float _lastTimeInput;
         private static bool _ragdollNextButton;
 
+        private static bool _registeredMelonPrefs = false;
+
         public override void OnInitializeMelon() {
             SetupMelonPrefs();
             SetupBoneMenu();
@@ -61,6 +63,8 @@ namespace RagdollPlayer
             KeepArmControl = MelonPrefKeepArmControl.Value;
             Binding = MelonPrefBinding.Value;
             Hand = MelonPrefHand.Value;
+
+            _registeredMelonPrefs = true;
         }
 
         public static void SetupBoneMenu()
@@ -98,6 +102,9 @@ namespace RagdollPlayer
         }
 
         public override void OnPreferencesLoaded() {
+            if (!_registeredMelonPrefs)
+                return;
+
             IsEnabled = MelonPrefEnabled.Value;
             KeepArmControl = MelonPrefKeepArmControl.Value;
             Binding = MelonPrefBinding.Value;
