@@ -2,9 +2,10 @@
 using BoneLib.BoneMenu;
 using BoneLib.BoneMenu.Elements;
 
-using MelonLoader;
+using Il2CppSLZ.Bonelab;
+using Il2CppSLZ.Rig;
 
-using SLZ.Rig;
+using MelonLoader;
 
 using UnityEngine;
 
@@ -120,40 +121,59 @@ namespace RagdollPlayer
 
         public override void OnUpdate() {
             if (IsEnabled) {
-                var physRig = Player.physicsRig;
+                var rig = Player.rigManager;
 
                 // Make sure the phys rig exists
-                if (physRig && !physRig.manager.activeSeat && !physRig.manager.uiRig.popUpMenu.m_IsCursorShown) {
+                if (rig && !rig.activeSeat && !UIRig.Instance.popUpMenu.m_IsCursorShown) {
                     var controller = GetController();
                     bool input = GetInput(controller);
 
                     // Toggle ragdoll
                     if (input) {
-                        bool isRagdolled = physRig.torso.spineInternalMult == 0f;
+                        var physRig = Player.physicsRig;
 
-                        if (!isRagdolled) {
-                            physRig.RagdollRig();
+                        bool isRagdolled = physRig.shutdown;
 
-                            if (KeepArmControl) {
-                                physRig.leftHand.physHand.forceMultiplier = 1f;
-                                physRig.rightHand.physHand.forceMultiplier = 1f;
+                        if (!isRagdolled)
+                        {
+                            RagdollRig(rig);
+
+                            if (KeepArmControl)
+                            {
+                                physRig.leftHand.physHand.shutdown = false;
+                                physRig.rightHand.physHand.shutdown = false;
                             }
                         }
                         else
-                            physRig.UnRagdollRig();
+                        {
+                            UnragdollRig(rig);
+                        }
                     }
                 }
             }
         }
 
+        public static void RagdollRig(RigManager rig)
+        {
+            var physicsRig = rig.physicsRig;
+
+            physicsRig.ShutdownRig();
+            physicsRig.RagdollRig();
+        }
+
+        public static void UnragdollRig(RigManager rig) {
+            var physicsRig = rig.physicsRig;
+
+            physicsRig.TurnOnRig();
+            physicsRig.UnRagdollRig();
+        }
+
         private static BaseController GetController() {
-            switch (Hand) {
-                default:
-                case RagdollHand.RIGHT_HAND:
-                    return Player.rightController;
-                case RagdollHand.LEFT_HAND:
-                    return Player.leftController;
-            }
+            return Hand switch
+            {
+                RagdollHand.LEFT_HAND => Player.leftController,
+                _ => Player.rightController,
+            };
         }
 
         private static bool GetInput(BaseController controller) {
