@@ -3,6 +3,7 @@ using BoneLib.BoneMenu;
 using BoneLib.BoneMenu.Elements;
 
 using Il2CppSLZ.Bonelab;
+using Il2CppSLZ.Interaction;
 using Il2CppSLZ.Rig;
 
 using MelonLoader;
@@ -28,18 +29,15 @@ namespace RagdollPlayer
 
         public static MelonPreferences_Category MelonPrefCategory { get; private set; }
         public static MelonPreferences_Entry<bool> MelonPrefEnabled { get; private set; }
-        public static MelonPreferences_Entry<bool> MelonPrefKeepArmControl { get; private set; }
         public static MelonPreferences_Entry<RagdollBinding> MelonPrefBinding { get; private set; }
         public static MelonPreferences_Entry<RagdollHand> MelonPrefHand { get; private set; }
 
         public static bool IsEnabled { get; private set; }
-        public static bool KeepArmControl { get; private set; }
         public static RagdollBinding Binding { get; private set; }
         public static RagdollHand Hand { get; private set; }
 
         public static MenuCategory BoneMenuCategory { get; private set; }
         public static BoolElement EnabledElement { get; private set; }
-        public static BoolElement KeepArmControlElement { get; private set; }
         public static EnumElement<RagdollBinding> BindingElement { get; private set; }
         public static EnumElement<RagdollHand> HandElement { get; private set; }
 
@@ -56,12 +54,10 @@ namespace RagdollPlayer
         public static void SetupMelonPrefs() {
             MelonPrefCategory = MelonPreferences.CreateCategory("Ragdoll Player");
             MelonPrefEnabled = MelonPrefCategory.CreateEntry("IsEnabled", true);
-            MelonPrefKeepArmControl = MelonPrefCategory.CreateEntry("KeepArmControl", false);
             MelonPrefBinding = MelonPrefCategory.CreateEntry("Binding", RagdollBinding.THUMBSTICK_PRESS);
             MelonPrefHand = MelonPrefCategory.CreateEntry("Hand", RagdollHand.RIGHT_HAND);
 
             IsEnabled = MelonPrefEnabled.Value;
-            KeepArmControl = MelonPrefKeepArmControl.Value;
             Binding = MelonPrefBinding.Value;
             Hand = MelonPrefHand.Value;
 
@@ -72,7 +68,6 @@ namespace RagdollPlayer
         {
             BoneMenuCategory = MenuManager.CreateCategory("Ragdoll Player", Color.green);
             EnabledElement = BoneMenuCategory.CreateBoolElement("Mod Toggle", Color.yellow, IsEnabled, OnSetEnabled);
-            KeepArmControlElement = BoneMenuCategory.CreateBoolElement("Keep Arm Control", Color.yellow, KeepArmControl, OnSetArmControl);
             BindingElement = BoneMenuCategory.CreateEnumElement("Binding", Color.yellow, Binding, OnSetBinding);
             HandElement = BoneMenuCategory.CreateEnumElement("Hand", Color.yellow, Hand, OnSetHand);
         }
@@ -80,13 +75,6 @@ namespace RagdollPlayer
         public static void OnSetEnabled(bool value) {
             IsEnabled = value;
             MelonPrefEnabled.Value = value;
-            MelonPrefCategory.SaveToFile(false);
-        }
-
-        public static void OnSetArmControl(bool value)
-        {
-            KeepArmControl = value;
-            MelonPrefKeepArmControl.Value = value;
             MelonPrefCategory.SaveToFile(false);
         }
 
@@ -109,12 +97,10 @@ namespace RagdollPlayer
             }
 
             IsEnabled = MelonPrefEnabled.Value;
-            KeepArmControl = MelonPrefKeepArmControl.Value;
             Binding = MelonPrefBinding.Value;
             Hand = MelonPrefHand.Value;
 
             EnabledElement.SetValue(IsEnabled);
-            KeepArmControlElement.SetValue(KeepArmControl);
             BindingElement.SetValue(Binding);
             HandElement.SetValue(Hand);
         }
@@ -132,17 +118,11 @@ namespace RagdollPlayer
                     if (input) {
                         var physRig = Player.physicsRig;
 
-                        bool isRagdolled = physRig.shutdown;
+                        bool isRagdolled = physRig.torso.shutdown;
 
                         if (!isRagdolled)
                         {
                             RagdollRig(rig);
-
-                            if (KeepArmControl)
-                            {
-                                physRig.leftHand.physHand.shutdown = false;
-                                physRig.rightHand.physHand.shutdown = false;
-                            }
                         }
                         else
                         {
