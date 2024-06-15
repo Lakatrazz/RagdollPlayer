@@ -144,8 +144,18 @@ namespace RagdollPlayer
         public static void UnragdollRig(RigManager rig) {
             var physicsRig = rig.physicsRig;
 
+            var feet = physicsRig.feet.transform;
+            var knee = physicsRig.knee.transform;
+            var pelvis = physicsRig.m_pelvis.transform;
+
             physicsRig.TurnOnRig();
             physicsRig.UnRagdollRig();
+
+            var position = pelvis.position;
+            var rotation = pelvis.rotation;
+
+            knee.SetPositionAndRotation(position, rotation);
+            feet.SetPositionAndRotation(position, rotation);
         }
 
         private static BaseController GetController() {
