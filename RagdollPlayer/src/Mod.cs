@@ -49,12 +49,14 @@ public class RagdollPlayerMod : MelonMod
 
     private static bool _preferencesSetup = false;
 
-    public override void OnInitializeMelon() {
+    public override void OnInitializeMelon() 
+    {
         SetupMelonPrefs();
         SetupBoneMenu();
     }
 
-    public static void SetupMelonPrefs() {
+    public static void SetupMelonPrefs() 
+    {
         MelonPrefCategory = MelonPreferences.CreateCategory("Ragdoll Player");
         MelonPrefEnabled = MelonPrefCategory.CreateEntry("IsEnabled", true);
         MelonPrefBinding = MelonPrefCategory.CreateEntry("Binding", RagdollBinding.THUMBSTICK_PRESS);

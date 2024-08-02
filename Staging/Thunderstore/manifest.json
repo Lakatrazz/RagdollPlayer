@@ -1,0 +1,9 @@
+{
+    "name": "Ragdoll_Player",
+    "version_number": "1.2.0",
+    "website_url": "",
+    "description": "Ragdoll your player at any time, using customizable inputs.",
+    "dependencies": [
+         "gnonme-BoneLib-3.0.0"
+    ]
+}
