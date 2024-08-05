@@ -16,7 +16,7 @@ namespace RagdollPlayer;
 
 public class RagdollPlayerMod : MelonMod 
 {
-    public const string Version = "1.2.0";
+    public const string Version = "1.2.1";
 
     private const float DoubleTapTimer = 0.32f;
 

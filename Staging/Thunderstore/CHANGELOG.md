@@ -1,3 +1,6 @@
+**V1.2.1**
+- Updated for BoneLib 3.1.0
+
 **v1.2.0**
 - Updated for patch 5
 - Updated for new BoneMenu
