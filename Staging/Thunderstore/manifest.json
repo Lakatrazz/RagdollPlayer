@@ -4,6 +4,6 @@
     "website_url": "https://github.com/Lakatrazz/RagdollPlayer",
     "description": "Ragdoll your player at any time, using customizable inputs.",
     "dependencies": [
-         "gnonme-BoneLib-3.1.0"
+         "gnonme-BoneLib-3.0.0"
     ]
 }
