@@ -3,10 +3,12 @@ using BoneLib.BoneMenu;
 
 using Il2CppSLZ.Bonelab;
 using Il2CppSLZ.Marrow;
+using Il2CppSLZ.Marrow.Audio;
 
 using MelonLoader;
 
 using System;
+using System.Collections.Generic;
 
 using UnityEngine;
 
@@ -60,10 +62,47 @@ public class RagdollPlayerMod : MelonMod
 
     private static bool _preferencesSetup = false;
 
+    private static List<FootstepSFX> _footsteps = new();
+
     public override void OnInitializeMelon() 
     {
+        Hooking.OnLevelLoaded += OnLevelLoaded;
+
         SetupMelonPrefs();
         SetupBoneMenu();
+    }
+
+    public static bool DisableFootstep(FootstepSFX sfx)
+    {
+        if (!IsEnabled)
+        {
+            return false;
+        }
+
+        if (!_footsteps.Contains(sfx))
+        {
+            return false;
+        }
+
+        var physicsRig = Player.PhysicsRig;
+
+        if (physicsRig  == null)
+        {
+            return false;
+        }
+
+        bool ragdolled = physicsRig.torso.shutdown || !physicsRig.ballLocoEnabled;
+
+        return ragdolled;
+    }
+
+    private void OnLevelLoaded(LevelInfo info)
+    {
+        _footsteps = new();
+
+        var footsteps = Player.RigManager.animationRig.body.locomotion.footsteps;
+        _footsteps.Add(footsteps[0].stepSfx);
+        _footsteps.Add(footsteps[1].stepSfx);
     }
 
     public static void SetupMelonPrefs() 
