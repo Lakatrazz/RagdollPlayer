@@ -1,6 +1,6 @@
 {
     "name": "Ragdoll_Player",
-    "version_number": "1.2.1",
+    "version_number": "1.3.0",
     "website_url": "https://github.com/Lakatrazz/RagdollPlayer",
     "description": "Ragdoll your player at any time, using customizable inputs.",
     "dependencies": [
