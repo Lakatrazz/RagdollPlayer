@@ -1,4 +1,7 @@
-**V1.2.1**
+**v1.3.0**
+- Added back arm control for the new ragdoll
+
+**v1.2.1**
 - Updated for BoneLib 3.1.0
 
 **v1.2.0**

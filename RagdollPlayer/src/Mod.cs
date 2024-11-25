@@ -20,32 +20,40 @@ public class RagdollPlayerMod : MelonMod
 
     private const float DoubleTapTimer = 0.32f;
 
-    public enum RagdollBinding {
-        THUMBSTICK_PRESS = 0,
-        DOUBLE_TAP_B = 1,
+    public enum RagdollMode
+    {
+        LIMP,
+        ARM_CONTROL,
     }
 
-    public enum RagdollHand {
-        RIGHT_HAND = 0,
-        LEFT_HAND = 1,
+    public enum RagdollBinding 
+    {
+        THUMBSTICK_PRESS,
+        DOUBLE_TAP_B,
+    }
+
+    public enum RagdollHand 
+    {
+        RIGHT_HAND,
+        LEFT_HAND,
     }
 
     public static MelonPreferences_Category MelonPrefCategory { get; private set; }
     public static MelonPreferences_Entry<bool> MelonPrefEnabled { get; private set; }
     public static MelonPreferences_Entry<RagdollBinding> MelonPrefBinding { get; private set; }
     public static MelonPreferences_Entry<RagdollHand> MelonPrefHand { get; private set; }
-    public static MelonPreferences_Entry<bool> MelonPrefKeepLimbControl { get; private set; }
+    public static MelonPreferences_Entry<RagdollMode> MelonPrefMode { get; private set; }
 
     public static bool IsEnabled { get; private set; }
     public static RagdollBinding Binding { get; private set; }
     public static RagdollHand Hand { get; private set; }
-    public static bool KeepLimbControl { get; private set; }
+    public static RagdollMode Mode { get; private set; }
 
     public static Page MainPage { get; private set; }
     public static BoolElement EnabledElement { get; private set; }
     public static EnumElement BindingElement { get; private set; }
     public static EnumElement HandElement { get; private set; }
-    public static BoolElement KeepLimbControlElement { get; private set; }
+    public static EnumElement ModeElement { get; private set; }
 
     private static float _lastTimeInput;
     private static bool _ragdollNextButton;
@@ -64,12 +72,12 @@ public class RagdollPlayerMod : MelonMod
         MelonPrefEnabled = MelonPrefCategory.CreateEntry("IsEnabled", true);
         MelonPrefBinding = MelonPrefCategory.CreateEntry("Binding", RagdollBinding.THUMBSTICK_PRESS);
         MelonPrefHand = MelonPrefCategory.CreateEntry("Hand", RagdollHand.RIGHT_HAND);
-        MelonPrefKeepLimbControl = MelonPrefCategory.CreateEntry("Keep Limb Control", false);
+        MelonPrefMode = MelonPrefCategory.CreateEntry("Mode", RagdollMode.LIMP);
 
         IsEnabled = MelonPrefEnabled.Value;
         Binding = MelonPrefBinding.Value;
         Hand = MelonPrefHand.Value;
-        KeepLimbControl = MelonPrefKeepLimbControl.Value;
+        Mode = MelonPrefMode.Value;
 
         _preferencesSetup = true;
     }
@@ -77,10 +85,10 @@ public class RagdollPlayerMod : MelonMod
     public static void SetupBoneMenu()
     {
         MainPage = Page.Root.CreatePage("Ragdoll Player", Color.green);
-        EnabledElement = MainPage.CreateBool("Mod Toggle", Color.yellow, IsEnabled, OnSetEnabled);
-        BindingElement = MainPage.CreateEnum("Binding", Color.yellow, Binding, OnSetBinding);
-        HandElement = MainPage.CreateEnum("Hand", Color.yellow, Hand, OnSetHand);
-        KeepLimbControlElement = MainPage.CreateBool("Keep Limb Control", Color.cyan, KeepLimbControl, OnSetKeepLimbControl);
+        EnabledElement = MainPage.CreateBool("Enabled", Color.yellow, IsEnabled, OnSetEnabled);
+        BindingElement = MainPage.CreateEnum("Binding", Color.red, Binding, OnSetBinding);
+        ModeElement = MainPage.CreateEnum("Mode", Color.cyan, Mode, OnSetMode);
+        HandElement = MainPage.CreateEnum("Hand", Color.green, Hand, OnSetHand);
     }
 
     private static void OnSetEnabled(bool value) 
@@ -108,10 +116,12 @@ public class RagdollPlayerMod : MelonMod
         MelonPrefCategory.SaveToFile(false);
     }
 
-    private static void OnSetKeepLimbControl(bool value)
+    private static void OnSetMode(Enum value)
     {
-        KeepLimbControl = value;
-        MelonPrefKeepLimbControl.Value = value;
+        var mode = (RagdollMode)value;
+
+        Mode = mode;
+        MelonPrefMode.Value = mode;
         MelonPrefCategory.SaveToFile(false);
     }
 
@@ -125,12 +135,12 @@ public class RagdollPlayerMod : MelonMod
         IsEnabled = MelonPrefEnabled.Value;
         Binding = MelonPrefBinding.Value;
         Hand = MelonPrefHand.Value;
-        KeepLimbControl = MelonPrefKeepLimbControl.Value;
+        Mode = MelonPrefMode.Value;
 
         EnabledElement.Value = IsEnabled;
         BindingElement.Value = Binding;
         HandElement.Value = Hand;
-        KeepLimbControlElement.Value = KeepLimbControl;
+        ModeElement.Value = Mode;
     }
 
     public override void OnUpdate()
@@ -153,7 +163,7 @@ public class RagdollPlayerMod : MelonMod
             {
                 var physRig = Player.PhysicsRig;
 
-                bool isRagdolled = physRig.torso.shutdown;
+                bool isRagdolled = physRig.torso.shutdown || !physRig.ballLocoEnabled;
 
                 if (!isRagdolled)
                 {
@@ -171,13 +181,22 @@ public class RagdollPlayerMod : MelonMod
     {
         var physicsRig = rig.physicsRig;
 
-        // If we don't shutdown the rig, we have arm control
-        if (!KeepLimbControl)
+        // Only shutdown the rig if we go limp
+        if (Mode == RagdollMode.LIMP)
         {
             physicsRig.ShutdownRig();
         }
 
         physicsRig.RagdollRig();
+
+        // Ragdoll the legs if we only have arm control
+        if (Mode == RagdollMode.ARM_CONTROL)
+        {
+            physicsRig.DisableBallLoco();
+            physicsRig.PhysicalLegs();
+            physicsRig.legLf.ShutdownLimb();
+            physicsRig.legRt.ShutdownLimb();
+        }
     }
 
     public static void UnragdollRig(RigManager rig) 
